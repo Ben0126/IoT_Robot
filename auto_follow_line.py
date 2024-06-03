@@ -69,9 +69,6 @@ def main():
                 avg_x = int(np.mean([p.pt[0] for p in recent_points]))
                 avg_y = int(np.mean([p.pt[1] for p in recent_points]))
 
-                # # 取最后一个检测到的点作为当前点
-                # current_point = line_list[-1]
-                # current_x = current_point.pt[0]
 
                 setpoint = frame_width // 2  # 设定点为图像中心
                 print('current_point', avg_x)
