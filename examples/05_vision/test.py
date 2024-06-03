@@ -40,7 +40,7 @@ class PIDController:
         self.integral = 0
 
     def compute(self, setpoint, current_value):
-        error = current_value - setpoint
+        error = setpoint - current_value
         self.integral += error
         derivative = error - self.prev_error
         self.prev_error = error
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     ep_camera.start_video_stream(display=False)
     result = ep_vision.sub_detect_info(name="line", color="blue", callback=on_detect_line)
 
-    pid = PIDController(Kp=33, Ki=0, Kd=2)
+    pid = PIDController(Kp=0.5, Ki=0, Kd=0.0)
 
     while True:
         img = ep_camera.read_cv2_image(strategy="newest", timeout=0.5)
@@ -72,10 +72,10 @@ if __name__ == '__main__':
 
             # 计算PID控制量
             control_signal = pid.compute(setpoint, current_x)
-            control_signal = control_signal/100
+            control_signal = -1*control_signal/10
             print('control_signal', control_signal)
 
-            ep_chassis.drive_speed(x=0.2, y=0, z=control_signal)
+            ep_chassis.drive_speed(x=0.2, y=0, z= control_signal)
 
             # 在图像上绘制检测到的点
             for point in line_list:
