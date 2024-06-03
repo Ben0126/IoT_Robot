@@ -1,5 +1,7 @@
 import cv2
 from robomaster import robot, vision
+import numpy as np
+import time
 
 class PointInfo:
     def __init__(self, x, y, theta, c):
@@ -62,25 +64,35 @@ def main():
             frame_width = img.shape[1]  # 获取图像宽度
 
             if line_list:
-                # 取最后一个检测到的点作为当前点
-                current_point = line_list[-1]
-                current_x = current_point.pt[0]
+                # 取最后10个检测到的点的平均数值
+                recent_points = line_list[-10:]
+                avg_x = int(np.mean([p.pt[0] for p in recent_points]))
+                avg_y = int(np.mean([p.pt[1] for p in recent_points]))
+
+                # # 取最后一个检测到的点作为当前点
+                # current_point = line_list[-1]
+                # current_x = current_point.pt[0]
+
                 setpoint = frame_width // 2  # 设定点为图像中心
-                print('current_point', current_x)
+                print('current_point', avg_x)
 
                 # 计算PID控制量
-                control_signal = pid.compute(setpoint, current_x)
+                control_signal = pid.compute(setpoint, avg_x)
                 control_signal /= 100
                 print('control_signal', control_signal)
 
-                ep_chassis.drive_speed(x=0.5, y=0, z=control_signal)
+                ep_chassis.drive_speed(x=3.5, y=0, z=control_signal)
 
                 # 在图像上绘制检测到的点
                 for point in line_list:
                     cv2.circle(img, point.pt, 3, point.color, -1)
 
+                # 在图像上绘制平均点
+                cv2.circle(img, (avg_x, avg_y), 5, (0, 255, 0), -1)
+
             cv2.imshow("Line", img)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord(' '):
+                ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0.5)
                 break
 
     except Exception as e:
@@ -94,4 +106,7 @@ def main():
         ep_robot.close()
 
 if __name__ == '__main__':
+    start = time.time()
     main()
+    end = time.time()
+    print(format(end - start))
