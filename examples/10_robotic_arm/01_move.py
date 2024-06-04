@@ -25,12 +25,16 @@ if __name__ == '__main__':
     ep_arm = ep_robot.robotic_arm
 
     # 向前移动20毫米
-    ep_arm.move(x=20, y=0).wait_for_completed()
-    # 向后移动20毫米
-    ep_arm.move(x=-20, y=0).wait_for_completed()
-    # 向上移动20毫米
-    ep_arm.move(x=0, y=20).wait_for_completed()
-    # 向下移动20毫米
-    ep_arm.move(x=0, y=-20).wait_for_completed()
+    ep_arm.move(x=97, y=-24).wait_for_completed()
+    print("a")
+    # # 向后移动20毫米
+    # ep_arm.move(x=-20, y=0).wait_for_completed()
+    # print("b")
+    # # 向上移动20毫米
+    # ep_arm.move(x=0, y=20).wait_for_completed()
+    # print("c")
+    # # 向下移动20毫米
+    # ep_arm.move(x=0, y=50).wait_for_completed()
+    # print("d")
 
     ep_robot.close()
