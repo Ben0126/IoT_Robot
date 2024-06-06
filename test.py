@@ -50,12 +50,17 @@ def on_detect_line(line_info):
     global line_list
     line_list = [PointInfo(x, y, ceta, c) for x, y, ceta, c in line_info[1:]]
 
+# def sub_data_distance(sub_info):
+#     global distance_data
+#     distance = sub_info
+#     distance_data = distance[0]
+#     print("tof1:{0}".format(distance_data))
+
 distance_data = None
 def sub_data_distance(sub_info):
-    global distance_data
     distance = sub_info
     distance_data = distance[0]
-    print("tof1:{0}".format(distance_data))
+    print("tof1:{0}".format(distance[0]))
 
 class PIDController:
     def __init__(self, Kp, Ki, Kd):
@@ -152,11 +157,14 @@ def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_g
             print("line 151")
             process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list)
             print("line 153")
-            if distance_data is not None and distance_data <= 50:
-                print("line 155")
-                stop_and_reposition(ep_chassis)
-                ep_chassis.move(x=0.05, y=0, z=0, xy_speed=0.01).wait_for_completed()
-                break
+            if distance_data is not None:
+                print("distance_data : None")
+            else:
+                if distance_data <= 50:
+                    print("distance_data < 50")
+                    stop_and_reposition(ep_chassis)
+                    ep_chassis.move(x=0.05, y=0, z=0, xy_speed=0.01).wait_for_completed()
+                    break
 
         cv2.imshow("Line", img)
         if cv2.waitKey(1) & 0xFF == ord(' '):
@@ -266,17 +274,18 @@ if __name__ == "__main__":
 
         task = "2"
         execute_task(robot2, task)
+        print("task Finish")
         track_line(robot2, 2)
+        print("track_line Finish")
         time.sleep(0.5)
         catch_and_return(robot2)
+        print("catch_and_return")
         track_line(robot2, 3)
+        print("track_line Finish 276")
         execute_task_back(robot2, task)
 
-        robot1 = robot.Robot()
-        robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
-
-        print("F 265")
-        track_line(robot1, "1")
+        # print("F 265")
+        # track_line(robot1, "1")
         print("The End")
 
     except KeyboardInterrupt:
