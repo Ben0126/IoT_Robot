@@ -39,17 +39,11 @@ class PointInfo:
         return 255, 255, 255
 
 markers = []
-# def on_detect_marker(marker_info):
-#     global markers
-#     markers = [MarkerInfo(x, y, w, h, info) for x, y, w, h, info in marker_info]
-
 def on_detect_marker(marker_info):
     number = len(marker_info)
-    # markers.clear()
     for i in range(0, number):
         x, y, w, h, info = marker_info[i]
         markers.append(MarkerInfo(x, y, w, h, info))
-        # print("marker:{0} x:{1}, y:{2}, w:{3}, h:{4}".format(info, x, y, w, h))
 
 line_list = []
 def on_detect_line(line_info):
@@ -110,11 +104,11 @@ def track_line(ep_robot, mode):
         print("91 An error occurred: %s", e)
         ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0.5)
         time.sleep(1)
-    finally:
-        ep_vision.unsub_detect_info(name="line")
-        cv2.destroyAllWindows()
-        ep_camera.stop_video_stream()
-        ep_robot.close()
+    # finally:
+        # ep_vision.unsub_detect_info(name="line")
+        # cv2.destroyAllWindows()
+        # ep_camera.stop_video_stream()
+        # ep_robot.close()
 
 def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, mode):
     print("line 112")
@@ -135,8 +129,6 @@ def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_g
                 print("line 135")
                 cv2.rectangle(img, markers[j].pt1, markers[j].pt2, (255, 255, 255))
                 print("line 140")
-
-            print("130 Detected markers:", [m.info for m in markers])
 
             if markers:
                 print("marker break 145")
@@ -165,17 +157,6 @@ def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_g
             stop_and_reposition(ep_chassis)
             break
 
-# def process_markers(ep_chassis, img):
-#     for marker in markers:
-#         cv2.rectangle(img, marker.pt1, marker.pt2, (255, 255, 255))
-#         cv2.putText(img, marker.info, marker.center, cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
-#
-#     if len(markers) > 0:
-#         stop_and_reposition(ep_chassis)
-#         time.sleep(1)
-#         return True
-#     return False
-
 def process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list):
     print("line 159")
     if line_list:
@@ -202,43 +183,6 @@ def stop_and_reposition(ep_chassis):
     ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0.5)
     time.sleep(1)
 
-# def main():
-#     try:
-#         robot1 = robot.Robot()
-#         robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
-#         ep1_vision, ep1_camera, ep1_chassis, ep1_gripper, ep1_sensor, ep1_gimbal = configure_robot(robot1)
-#
-#         ep1_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
-#
-#         # robot2 = robot.Robot()
-#         # robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
-#         print("line 215")
-#         track_line(robot1, "1")
-#         print("line 217")
-#         time.sleep(1)
-#
-#         ep1_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
-#         time.sleep(1)
-#         print("line 220")
-#         task = markers[0].info if markers else None
-#         print("task: %e",task)
-#         # execute_task(robot2, task)
-#         # track_line(robot2, 2)
-#         # time.sleep(0.5)
-#         # catch_and_return(robot2)
-#         # track_line(robot2, 3)
-#         # execute_task_back(robot2, task)
-#         # time.sleep(5)
-#         # track_line(robot1, 1)
-#         print("The End")
-#
-#     except KeyboardInterrupt:
-#         print("Emergency stop!")
-#
-#     finally:
-#         robot1.close()
-#         # robot2.close()
-#         print("All robots closed")
 
 def execute_task(robot, task):
     ep_chassis, ep_servo, ep_gimbal = robot.chassis, robot.servo, robot.gimbal
@@ -271,7 +215,6 @@ def catch_and_return(robot):
     time.sleep(0.5)
 
 
-
 def execute_task_back(robot, task):
     ep_chassis, ep_gripper, ep_servo, ep_gimbal = robot.chassis, robot.gripper, robot.servo, robot.gimbal
     tasks = {
@@ -302,17 +245,13 @@ if __name__ == "__main__":
         robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
         ep1_vision, ep1_camera, ep1_chassis, ep1_gripper, ep1_sensor, ep1_gimbal = configure_robot(robot1)
 
-        # ep1_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
-
-
         print("line 215")
         track_line(robot1, "1")
         task = markers[0].info if markers else None
         print("task:", task)
+        # robot1.close()
+        time.sleep(4)
 
-        # ep1_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
-        print("line 220")
-        ep1_chassis.move(x=0.5, y=0, z=0, xy_speed=0.7).wait_for_completed()
         # robot2 = robot.Robot()
         # robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
 
@@ -322,14 +261,21 @@ if __name__ == "__main__":
         # catch_and_return(robot2)
         # track_line(robot2, 3)
         # execute_task_back(robot2, task)
-        time.sleep(5)
-        track_line(robot1, 1)
+
+        # robot1 = robot.Robot()
+        # robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
+
+        print("F 265")
+        track_line(robot1, "1")
         print("The End")
 
     except KeyboardInterrupt:
         print("Emergency stop!")
 
     finally:
+        # ep_vision.unsub_detect_info(name="line")
+        cv2.destroyAllWindows()
+        # ep_camera.stop_video_stream()
         robot1.close()
         # robot2.close()
         print("All robots closed")
