@@ -104,11 +104,11 @@ def track_line(ep_robot, mode):
         print("91 An error occurred: %s", e)
         ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0.5)
         time.sleep(1)
-    # finally:
-        # ep_vision.unsub_detect_info(name="line")
-        # cv2.destroyAllWindows()
-        # ep_camera.stop_video_stream()
-        # ep_robot.close()
+    finally:
+        ep_vision.unsub_detect_info(name="line")
+        cv2.destroyAllWindows()
+        ep_camera.stop_video_stream()
+        ep_robot.close()
 
 def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, mode):
     print("line 112")
@@ -132,9 +132,10 @@ def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_g
 
             if markers:
                 print("marker break 145")
-                ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0.5)
-                time.sleep(1)
-                ep1_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
+                stop_and_reposition(ep_chassis)
+                # ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0.5)
+                # time.sleep(1)
+                ep_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
                 break
 
             print("line 139")
@@ -143,11 +144,16 @@ def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_g
             print("line 142")
 
         elif mode == "2":
+            print("line 146")
             ep_sensor.sub_distance(freq=5, callback=sub_data_distance)
             ep_vision.sub_detect_info(name="line", color="blue", callback=on_detect_line)
+            print("line 149")
             ep_gimbal.moveto(pitch=-50, yaw=0).wait_for_completed()
+            print("line 151")
             process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list)
+            print("line 153")
             if distance_data is not None and distance_data <= 50:
+                print("line 155")
                 stop_and_reposition(ep_chassis)
                 ep_chassis.move(x=0.05, y=0, z=0, xy_speed=0.01).wait_for_completed()
                 break
@@ -169,10 +175,13 @@ def process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, lin
         control_signal = pid.compute(setpoint, avg_x) / 100
 
         if mode == "2" or mode == "3":
-            print("line 187")
+            print("mode 2&3 track line")
             ep_gimbal.drive_speed(pitch_speed=0, yaw_speed=control_signal)
+            ep_chassis.drive_speed(x=x_val, y=0, z=control_signal)
+        elif mode =="1":
+            print("mode 1 track line")
+            ep_chassis.drive_speed(x=x_val, y=0, z=control_signal)
 
-        ep_chassis.drive_speed(x=x_val, y=0, z=control_signal)
         print("line 191")
 
         for point in line_list:
@@ -241,29 +250,30 @@ def execute_task_back(robot, task):
 
 if __name__ == "__main__":
     try:
-        robot1 = robot.Robot()
-        robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
-        ep1_vision, ep1_camera, ep1_chassis, ep1_gripper, ep1_sensor, ep1_gimbal = configure_robot(robot1)
-
-        print("line 215")
-        track_line(robot1, "1")
-        task = markers[0].info if markers else None
-        print("task:", task)
-        # robot1.close()
-        time.sleep(4)
-
-        # robot2 = robot.Robot()
-        # robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
-
-        # execute_task(robot2, task)
-        # track_line(robot2, 2)
-        # time.sleep(0.5)
-        # catch_and_return(robot2)
-        # track_line(robot2, 3)
-        # execute_task_back(robot2, task)
-
         # robot1 = robot.Robot()
         # robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
+        # ep1_vision, ep1_camera, ep1_chassis, ep1_gripper, ep1_sensor, ep1_gimbal = configure_robot(robot1)
+        #
+        # print("line 215")
+        # track_line(robot1, "1")
+        # task = markers[0].info if markers else None
+        # markers.clear()
+        # print("task:", task)
+        # time.sleep(4)
+
+        robot2 = robot.Robot()
+        robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
+
+        task = 2
+        execute_task(robot2, task)
+        track_line(robot2, 2)
+        time.sleep(0.5)
+        catch_and_return(robot2)
+        track_line(robot2, 3)
+        execute_task_back(robot2, task)
+
+        robot1 = robot.Robot()
+        robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
 
         print("F 265")
         track_line(robot1, "1")
@@ -274,8 +284,8 @@ if __name__ == "__main__":
 
     finally:
         # ep_vision.unsub_detect_info(name="line")
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
         # ep_camera.stop_video_stream()
         robot1.close()
-        # robot2.close()
+        robot2.close()
         print("All robots closed")
