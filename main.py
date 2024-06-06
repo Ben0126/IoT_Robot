@@ -75,26 +75,27 @@ class PIDController:
 def configure_robot(ep_robot):
     return (ep_robot.vision, ep_robot.camera, ep_robot.chassis, ep_robot.gripper, ep_robot.sensor, ep_robot.gimbal)
 
-def track_line(ep_robot, mode, markers):
+def track_line(ep_robot, mode):
     ep_vision, ep_camera, ep_chassis, ep_gripper, ep_sensor, ep_gimbal = configure_robot(ep_robot)
     ep_camera.start_video_stream(display=False)
 
     try:
-        if mode in [1, 3]:
-            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, mode, "marker")
-        elif mode == 2:
-            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, mode, "line")
+        if mode == 1:
+            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, 1)
+        elif mode == "2":
+            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, 2)
+        elif mode == "3":
+            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, 3)
 
     except Exception as e:
-        print("An error occurred: %s", e)
+        print("91 An error occurred: %s", e)
     finally:
         ep_vision.unsub_detect_info(name="line")
         cv2.destroyAllWindows()
         ep_camera.stop_video_stream()
         ep_robot.close()
 
-def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, mode,
-                                   detect_type):
+def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, mode):
 
     pid = PIDController(Kp=33, Ki=0, Kd=0.5)
     x_val = 0.5 if mode != 2 else 0.1
@@ -107,12 +108,12 @@ def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_g
             ep_vision.sub_detect_info(name="marker", callback=on_detect_marker)
             process_markers(ep_chassis, img)
             ep_vision.sub_detect_info(name="line", color="blue", callback=on_detect_line)
-            process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode)
+            process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list)
         elif mode == 2:
             ep_sensor.sub_distance(freq=5, callback=sub_data_distance)
             ep_vision.sub_detect_info(name="line", color="blue", callback=on_detect_line)
             ep_gimbal.moveto(pitch=-50, yaw=0).wait_for_completed()
-            process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode)
+            process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list)
             if distance_data is not None and distance_data <= 50:
                 stop_and_reposition(ep_chassis)
                 ep_chassis.move(x=0.05, y=0, z=0, xy_speed=0.01).wait_for_completed()
@@ -133,7 +134,7 @@ def process_markers(ep_chassis, img):
         return True
     return False
 
-def process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode):
+def process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list):
     if line_list:
         recent_points = line_list[:-10]
         avg_x = int(np.mean([p.pt[0] for p in recent_points]))
@@ -236,6 +237,11 @@ def execute_task_back(robot, task):
     time.sleep(2)
     ep_gripper.pause()
     time.sleep(1)
+    ep_servo.moveto(index=2, angle=-95).wait_for_completed()
+    ep_servo.moveto(index=1, angle=80).wait_for_completed()
+    time.sleep(0.5)
+    ep_chassis.move(x=-0.5, y=0, z=0, xy_speed=0.7).wait_for_completed()
+    ep_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
     print("The End from Arm Robot")
 
 if __name__ == "__main__":
