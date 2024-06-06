@@ -178,7 +178,7 @@ def process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, lin
             print("mode 2&3 track line")
             ep_gimbal.drive_speed(pitch_speed=0, yaw_speed=control_signal)
             ep_chassis.drive_speed(x=x_val, y=0, z=control_signal)
-        elif mode =="1":
+        elif mode == "1":
             print("mode 1 track line")
             ep_chassis.drive_speed(x=x_val, y=0, z=control_signal)
 
