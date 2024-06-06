@@ -264,7 +264,7 @@ if __name__ == "__main__":
         robot2 = robot.Robot()
         robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
 
-        task = 2
+        task = "2"
         execute_task(robot2, task)
         track_line(robot2, 2)
         time.sleep(0.5)
