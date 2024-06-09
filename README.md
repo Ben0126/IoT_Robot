@@ -92,54 +92,97 @@ flowchart TD
 ### Classes
 
 #### MarkerInfo
-Stores information about detected markers.
+
+This class stores information about detected markers.
+
+- **Attributes:**
+  - `x`, `y`: Coordinates of the marker.
+  - `w`, `h`: Width and height of the marker.
+  - `info`: Additional information about the marker.
+
+- **Properties:**
+  - `pt1`: Returns the top-left point of the marker.
+  - `pt2`: Returns the bottom-right point of the marker.
+  - `center`: Returns the center point of the marker.
 
 #### PointInfo
-Stores information about detected points in the line.
+
+This class stores information about detected points in the line.
+
+- **Attributes:**
+  - `x`, `y`: Coordinates of the point.
+  - `theta`: Angle of the point.
+  - `c`: Color code of the point.
+
+- **Properties:**
+  - `pt`: Returns the coordinates of the point.
+  - `color`: Returns the color of the point.
 
 #### PIDController
-Implements a PID controller for line tracking.
+
+This class implements a PID controller for line tracking.
+
+- **Attributes:**
+  - `Kp`, `Ki`, `Kd`: PID coefficients.
+  - `prev_error`: Previous error value.
+  - `integral`: Integral of the error.
+
+- **Methods:**
+  - `compute(setpoint, current_value)`: Computes the control signal based on the setpoint and current value.
 
 ### Functions
 
-#### on_detect_marker(marker_info)
-Callback function to handle detected markers.
+- #### on_detect_marker(marker_info)
 
-#### on_detect_line(line_info)
-Callback function to handle detected lines.
+    Callback function to handle detected markers. It appends detected markers to the global `markers` list.
 
-#### sub_data_distance(sub_info)
-Callback function to handle distance data.
+- #### on_detect_line(line_info)
 
-#### configure_robot(ep_robot)
-Configures the robot's components.
+    Callback function to handle detected lines. It updates the global `line_list` with detected line points.
 
-#### track_line(ep_robot, mode)
-Tracks a line and executes tasks based on the mode.
+- #### sub_data_distance(sub_info)
 
-#### configure_marker_execute(ep_vision, ep_chassis, ep_camera, ep_gimbal, mode)
-Configures the robot for marker-based execution.
+    Callback function to handle distance data. It updates the global `distance_data` with the measured distance.
 
-#### configure_distance_execute(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor)
-Configures the robot for distance-based execution.
+- #### configure_robot(ep_robot)
 
-#### process_lines_cargo(ep_chassis, img, pid, x_val, frame_width, line_list)
-Processes line data for cargo mode.
+    Configures the robot's components (vision, camera, chassis, gripper, sensor, gimbal) and returns them.
 
-#### process_lines_arm(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, line_list)
-Processes line data for arm mode.
+- #### track_line(ep_robot, mode)
 
-#### stop_and_reposition(ep_chassis)
-Stops the robot and repositions it.
+    Tracks a line and executes tasks based on the specified mode ("cargo-marker", "arm-distance", or "arm-marker").
 
-#### execute_task(robot, task)
-Executes a specified task using the robot.
+- #### configure_marker_execute(ep_vision, ep_chassis, ep_camera, ep_gimbal, mode)
 
-#### catch_and_return(robot)
-Executes the catch and return operation.
+    Configures the robot for marker-based execution. It handles line tracking, marker detection, and repositioning.
 
-#### execute_task_back(robot, task)
-Executes the task to return the object.
+- #### configure_distance_execute(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor)
+
+    Configures the robot for distance-based execution. It handles line tracking, distance measurement, and repositioning.
+
+- #### process_lines_cargo(ep_chassis, img, pid, x_val, frame_width, line_list)
+
+    Processes line data for cargo mode. It computes control signals using the PID controller and adjusts the robot's chassis speed.
+
+- #### process_lines_arm(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, line_list)
+
+    Processes line data for arm mode. It computes control signals using the PID controller and adjusts both the robot's chassis and gimbal speed.
+
+- #### stop_and_reposition(ep_chassis)
+
+    Stops the robot and repositions it.
+
+- #### execute_task(robot, task)
+
+    Executes a specified task using the robot. The tasks involve rotating the chassis and moving the servo.
+
+- #### catch_and_return(robot)
+
+    Executes the catch and return operation. The robot grips an object, moves it, and returns to the starting position.
+
+- #### execute_task_back(robot, task)
+
+    Executes the task to return the object. It involves moving the chassis, servo, and gripper to release the object and return.
 
 ## Error Handling
 
