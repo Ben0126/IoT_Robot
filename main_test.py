@@ -188,13 +188,18 @@ def stop_and_reposition(ep_chassis):
 
 def execute_task(robot, task):
     ep_chassis, ep_servo, ep_gimbal = robot.chassis, robot.servo, robot.gimbal
-    tasks = {
-        "1": lambda: ep_chassis.move(x=0, y=0, z=90, z_speed=45).wait_for_completed(),
-        "2": lambda: ep_chassis.move(x=0, y=0, z=0, xy_speed=0).wait_for_completed(),
-        "3": lambda: ep_chassis.move(x=0, y=0, z=-90, z_speed=45).wait_for_completed(),
-    }
-    tasks.get(task, lambda: stop_and_reposition(ep_chassis))()
+
+    if task == "1":
+        ep_chassis.move(x=0, y=0, z=90, z_speed=45).wait_for_completed()
+    elif task == "2":
+        ep_chassis.move(x=0, y=0, z=0, xy_speed=0).wait_for_completed()
+    elif task == "3":
+        ep_chassis.move(x=0, y=0, z=-90, z_speed=45).wait_for_completed()
+    else:
+        stop_and_reposition(ep_chassis)
+        print("No get task")
     time.sleep(0.5)
+
     ep_servo.moveto(index=1, angle=-10).wait_for_completed()
     ep_servo.moveto(index=2, angle=-35).wait_for_completed()
     ep_gimbal.moveto(pitch=-50, yaw=0).wait_for_completed()
@@ -216,16 +221,20 @@ def catch_and_return(robot):
     ep_gimbal.moveto(pitch=-50, yaw=0, pitch_speed=100, yaw_speed=100).wait_for_completed()
     time.sleep(0.5)
 
-
 def execute_task_back(robot, task):
     ep_chassis, ep_gripper, ep_servo, ep_gimbal = robot.chassis, robot.gripper, robot.servo, robot.gimbal
-    tasks = {
-        "1": lambda: ep_chassis.move(x=0, y=0, z=-90, z_speed=45).wait_for_completed(),
-        "2": lambda: ep_chassis.move(x=0, y=0, z=0, xy_speed=0).wait_for_completed(),
-        "3": lambda: ep_chassis.move(x=0, y=0, z=90, z_speed=45).wait_for_completed(),
-    }
-    tasks.get(task, lambda: stop_and_reposition(ep_chassis))()
+
+    if task == "1":
+        ep_chassis.move(x=0, y=0, z=-90, z_speed=45).wait_for_completed()
+    elif task == "2":
+        ep_chassis.move(x=0, y=0, z=0, xy_speed=0).wait_for_completed()
+    elif task == "3":
+        ep_chassis.move(x=0, y=0, z=90, z_speed=45).wait_for_completed()
+    else:
+        stop_and_reposition(ep_chassis)
+        print("No get task")
     time.sleep(0.5)
+
     ep_chassis.move(x=0.2, y=0, z=0, xy_speed=0.7).wait_for_completed()
     time.sleep(0.5)
     ep_servo.moveto(index=1, angle=-10).wait_for_completed()
@@ -253,18 +262,16 @@ if __name__ == "__main__":
         task = markers[0].info if markers else None
         markers.clear()
         print("task:", task)
-
         # task = "2"
         execute_task(robot2, task)
-        print("task Finish")
+        print("go to specify place")
         track_line(robot2, "arm-distance")
-        print("track_line Finish")
+        print("arrived specify place")
         catch_and_return(robot2)
         print("catch_and_return")
         track_line(robot2, "arm-marker")
-        print("track_line Finish 276")
+        print("arm_robot come back")
         execute_task_back(robot2, task)
-
         track_line(robot1, "cargo-marker")
         print("The End")
 
