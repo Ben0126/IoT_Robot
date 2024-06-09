@@ -65,20 +65,26 @@ The program initializes two robots and executes a series of tasks involving line
 
 ```mermaid
 flowchart TD
-    A[開始] --> B[初始化 Robot1 和 Robot2]
-    B --> C[Robot1: 追蹤標記線 "cargo-marker"]
-    C --> D{發現標記?}
-    D -->|是| E[執行 Robot2 的任務]
-    D -->|否| F[停止並重新定位]
-    E --> G[Robot2: 追蹤距離線 "arm-distance"]
-    G --> H{距離數據 <= 50?}
-    H -->|是| I[抓取並返回 Robot2]
-    H -->|否| G
-    I --> J[Robot2: 追蹤標記線 "arm-marker"]
-    J --> K[執行 Robot2 的返回任務]
-    K --> L[Robot1: 追蹤標記線 "cargo-marker"]
-    L --> M[結束]
+    A[Start] --> B[Initialize Robot1 and Robot2]
+    B --> C[Track Line: cargo-marker for Robot1]
+    C --> D[Check if markers found]
+    D -->|Yes| E[Execute Task for Robot2]
+    D -->|No| F[Stop and Reposition]
+    E --> G[Track Line: arm-distance for Robot2]
+    G --> H[Check distance data]
+    H -->|Data <= 50| I[Catch and Return for Robot2]
+    H -->|Data > 50| G
+    I --> J[Track Line: arm-marker for Robot2]
+    J --> K[Execute Task Back for Robot2]
+    K --> L[Track Line: cargo-marker for Robot1]
+    L --> M[End]
     F --> M
+    subgraph TrackLineSubgraph
+        direction LR
+        E --> G
+        G --> H
+        H --> I
+    end
 ```
 
 ## Classes and Functions
