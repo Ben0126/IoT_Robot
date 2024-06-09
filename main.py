@@ -40,9 +40,10 @@ class PointInfo:
 
 markers = []
 def on_detect_marker(marker_info):
-    global markers
-    markers = [MarkerInfo(x, y, w, h, info) for x, y, w, h, info in marker_info]
-    print("Detected markers:", [m.info for m in markers])
+    number = len(marker_info)
+    for i in range(0, number):
+        x, y, w, h, info = marker_info[i]
+        markers.append(MarkerInfo(x, y, w, h, info))
 
 line_list = []
 def on_detect_line(line_info):
@@ -80,45 +81,59 @@ def track_line(ep_robot, mode):
     ep_camera.start_video_stream(display=False)
 
     try:
-        if mode == 1:
-            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, 1)
+        if mode == "1":
+            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, "1")
         elif mode == "2":
-            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, 2)
+            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, "2")
         elif mode == "3":
-            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, 3)
+            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, "3")
+        else:
+            configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, "1")
 
     except Exception as e:
         print("91 An error occurred: %s", e)
+        ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0.5)
+        time.sleep(1)
     finally:
         ep_vision.unsub_detect_info(name="line")
         cv2.destroyAllWindows()
         ep_camera.stop_video_stream()
         ep_robot.close()
 
-def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, mode):
 
-    pid = PIDController(Kp=33, Ki=0, Kd=0.5)
-    x_val = 0.5 if mode != 2 else 0.1
+def configure_and_execute_mode(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor, mode):
+    pid = PIDController(Kp=27, Ki=0, Kd=2.5)
+    x_val = 0.5 if mode != "2" else 0.1
 
     while True:
         img = ep_camera.read_cv2_image(strategy="newest", timeout=0.5)
         frame_width = img.shape[1]
 
-        if mode == 1 or mode == 3:
+        if mode == "1" or mode == "3":
             ep_vision.sub_detect_info(name="marker", callback=on_detect_marker)
-            process_markers(ep_chassis, img)
+            for j in range(0, len(markers)):
+                cv2.rectangle(img, markers[j].pt1, markers[j].pt2, (255, 255, 255))
+            if markers:
+                stop_and_reposition(ep_chassis)
+                ep_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
+                break
             ep_vision.sub_detect_info(name="line", color="blue", callback=on_detect_line)
             process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list)
-        elif mode == 2:
+
+
+        elif mode == "2":
             ep_sensor.sub_distance(freq=5, callback=sub_data_distance)
             ep_vision.sub_detect_info(name="line", color="blue", callback=on_detect_line)
             ep_gimbal.moveto(pitch=-50, yaw=0).wait_for_completed()
             process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list)
-            if distance_data is not None and distance_data <= 50:
-                stop_and_reposition(ep_chassis)
-                ep_chassis.move(x=0.05, y=0, z=0, xy_speed=0.01).wait_for_completed()
-                break
-
+            if distance_data is not None:
+                print("distance_data : None")
+            else:
+                if distance_data <= 50:
+                    print("distance_data < 50")
+                    stop_and_reposition(ep_chassis)
+                    ep_chassis.move(x=0.05, y=0, z=0, xy_speed=0.01).wait_for_completed()
+                    break
         cv2.imshow("Line", img)
         if cv2.waitKey(1) & 0xFF == ord(' '):
             stop_and_reposition(ep_chassis)
@@ -136,17 +151,18 @@ def process_markers(ep_chassis, img):
 
 def process_lines(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, mode, line_list):
     if line_list:
-        recent_points = line_list[:-10]
+        recent_points = line_list[:-6]
         avg_x = int(np.mean([p.pt[0] for p in recent_points]))
         avg_y = int(np.mean([p.pt[1] for p in recent_points]))
 
         setpoint = frame_width // 2
         control_signal = pid.compute(setpoint, avg_x) / 100
 
-        if mode == 2 or mode == 3:
+        if mode == "2" or mode == "3":
             ep_gimbal.drive_speed(pitch_speed=0, yaw_speed=control_signal)
-
-        ep_chassis.drive_speed(x=x_val, y=0, z=control_signal)
+            ep_chassis.drive_speed(x=x_val, y=0, z=control_signal)
+        elif mode == "1":
+            ep_chassis.drive_speed(x=x_val, y=0, z=control_signal)
 
         for point in line_list:
             cv2.circle(img, point.pt, 3, point.color, -1)
@@ -245,4 +261,39 @@ def execute_task_back(robot, task):
     print("The End from Arm Robot")
 
 if __name__ == "__main__":
-    main()
+    try:
+        robot1 = robot.Robot()
+        robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
+        ep1_vision, ep1_camera, ep1_chassis, ep1_gripper, ep1_sensor, ep1_gimbal = configure_robot(robot1)
+
+        track_line(robot1, "1")
+        task = markers[0].info if markers else None
+        markers.clear()
+        print("task:", task)
+        time.sleep(4)
+
+        robot2 = robot.Robot()
+        robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
+
+        task = "2"
+        execute_task(robot2, task)
+        print("task Finish")
+        track_line(robot2, 2)
+        print("track_line Finish")
+        time.sleep(0.5)
+        catch_and_return(robot2)
+        print("catch_and_return")
+        track_line(robot2, 3)
+        print("track_line Finish 276")
+        execute_task_back(robot2, task)
+
+        track_line(robot1, "1")
+        print("The End")
+
+    except KeyboardInterrupt:
+        print("Emergency stop!")
+
+    finally:
+        robot1.close()
+        robot2.close()
+        print("All robots closed")
