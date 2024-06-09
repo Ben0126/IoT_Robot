@@ -1,157 +1,150 @@
-# RoboMaster Line and Marker Tracking Project
+# Robot Line Tracking and Task Execution
 
-This project involves the development of a RoboMaster robot that can track lines, detect markers, and execute specific tasks based on the detected markers. The project is implemented in Python using the RoboMaster SDK.
-
-## Table of Contents
-
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Code Explanation](#code-explanation)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Features
-
-- **Line Tracking**: The robot can follow a line using vision-based detection.
-- **Marker Detection**: The robot can detect and respond to markers.
-- **Task Execution**: The robot performs specific tasks based on the detected markers.
-- **Obstacle Detection**: The robot can detect obstacles using distance sensors and stop accordingly.
+This project involves controlling two robots to perform a series of tasks including line tracking, marker detection, distance measurement, and object manipulation. The robots use computer vision and various sensors to navigate and execute predefined tasks.
 
 ## Requirements
 
-- Python 3.6+
-- RoboMaster SDK
+- Python 3.x
 - OpenCV
+- RoboMaster SDK
 - NumPy
 
 ## Installation
 
-1. **Clone the repository**:
+1. Clone this repository:
+    ```bash
+    git clone <repository_url>
+    cd <repository_directory>
+    ```
 
-   \`\`\`bash
-   git clone https://github.com/yourusername/robomaster-line-tracking.git
-   cd robomaster-line-tracking
-   \`\`\`
-
-2. **Install the required packages**:
-
-   \`\`\`bash
-   pip install -r requirements.txt
-   \`\`\`
+2. Install the required packages:
+    ```bash
+    pip install opencv-python-headless robomaster numpy
+    ```
 
 ## Usage
 
-1. **Connect the RoboMaster robot** to your network and note the serial numbers (SN) of your robots.
+To run the program, execute the following command:
+```bash
+python main.py
+```
 
-2. **Update the serial numbers** in the \`main()\` function:
+## Overview
 
-   \`\`\`python
-   robot1.initialize(conn_type="sta", sn="YOUR_ROBOT_1_SN")
-   robot2.initialize(conn_type="sta", sn="YOUR_ROBOT_2_SN")
-   \`\`\`
+The program initializes two robots and executes a series of tasks involving line tracking, marker detection, and object manipulation. Below is a detailed explanation of the program flow.
 
-3. **Run the script**:
+## Program Flow
 
-   \`\`\`bash
-   python your_script.py
-   \`\`\`
+1. **Initialization:**
+   - Initialize Robot1 and Robot2 with their respective serial numbers.
 
-## Code Explanation
+2. **Line Tracking (Robot1):**
+   - Robot1 starts tracking a line in "cargo-marker" mode.
 
-### MarkerInfo Class
+3. **Marker Detection:**
+   - If markers are detected, Robot2 is tasked to execute the detected task.
+   - If no markers are detected, the robots stop and reposition.
 
-This class stores information about detected markers, including position and size.
+4. **Distance Measurement (Robot2):**
+   - Robot2 tracks a line in "arm-distance" mode and measures the distance using sensors.
 
-\`\`\`python
-class MarkerInfo:
-    def __init__(self, x, y, w, h, info):
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-        self.info = info
-\`\`\`
+5. **Distance Data Check:**
+   - If the distance data is less than or equal to 50, Robot2 executes a catch and return operation.
+   - If the distance data is greater than 50, Robot2 continues tracking the line.
 
-### PointInfo Class
+6. **Line Tracking (Robot2):**
+   - Robot2 tracks a line in "arm-marker" mode to return to the specified location.
 
-This class stores information about detected points on the line, including position and angle.
+7. **Task Execution Back (Robot2):**
+   - Robot2 executes the task to return the object to the starting position.
 
-\`\`\`python
-class PointInfo:
-    def __init__(self, x, y, theta, c):
-        self.x = x
-        self.y = y
-        self.theta = theta
-        self.c = c
-\`\`\`
+8. **Final Line Tracking (Robot1):**
+   - Robot1 tracks the line in "cargo-marker" mode again to complete the cycle.
 
-### PIDController Class
+## Flowchart
 
-This class implements a PID controller for controlling the robot's movements.
+```mermaid
+flowchart TD
+    A[開始] --> B[初始化 Robot1 和 Robot2]
+    B --> C[Robot1: 追蹤標記線 "cargo-marker"]
+    C --> D{發現標記?}
+    D -->|是| E[執行 Robot2 的任務]
+    D -->|否| F[停止並重新定位]
+    E --> G[Robot2: 追蹤距離線 "arm-distance"]
+    G --> H{距離數據 <= 50?}
+    H -->|是| I[抓取並返回 Robot2]
+    H -->|否| G
+    I --> J[Robot2: 追蹤標記線 "arm-marker"]
+    J --> K[執行 Robot2 的返回任務]
+    K --> L[Robot1: 追蹤標記線 "cargo-marker"]
+    L --> M[結束]
+    F --> M
+```
 
-\`\`\`python
-class PIDController:
-    def __init__(self, Kp, Ki, Kd):
-        self.Kp = Kp
-        self.Ki = Ki
-        self.Kd = Kd
-        self.prev_error = 0
-        self.integral = 0
+## Classes and Functions
 
-    def compute(self, setpoint, current_value):
-        error = current_value - setpoint
-        self.integral += error
-        derivative = error - self.prev_error
-        self.prev_error = error
-        return self.Kp * error + self.Ki * self.integral + self.Kd * derivative
-\`\`\`
+### Classes
 
-### Main Functions
+#### MarkerInfo
+Stores information about detected markers.
 
-- \`on_detect_marker()\`: Callback for marker detection.
-- \`on_detect_line()\`: Callback for line detection.
-- \`sub_data_distance()\`: Callback for distance sensor data.
-- \`configure_robot()\`: Configures the robot components.
-- \`track_line()\`: Main function to track lines and handle markers.
-- \`execute_task()\`: Executes specific tasks based on detected markers.
-- \`catch_and_return()\`: Grips an object and returns to the starting point.
+#### PointInfo
+Stores information about detected points in the line.
 
-### Main Execution
+#### PIDController
+Implements a PID controller for line tracking.
 
-The \`main()\` function initializes two robots, sets up their tasks, and executes them in sequence.
+### Functions
 
-\`\`\`python
-def main():
-    try:
-        # Initialize robots
-        robot1 = robot.Robot()
-        robot1.initialize(conn_type="sta", sn="YOUR_ROBOT_1_SN")
-        robot2 = robot.Robot()
-        robot2.initialize(conn_type="sta", sn="YOUR_ROBOT_2_SN")
+#### on_detect_marker(marker_info)
+Callback function to handle detected markers.
 
-        # Execute tasks
-        track_line(robot1, 1)
-        execute_task(robot2, markers[0].info if markers else None)
-        track_line(robot2, 2)
-        catch_and_return(robot2)
-        track_line(robot1, 1)
-        logging.info("The End")
+#### on_detect_line(line_info)
+Callback function to handle detected lines.
 
-    except KeyboardInterrupt:
-        logging.warning("Emergency stop!")
+#### sub_data_distance(sub_info)
+Callback function to handle distance data.
 
-    finally:
-        robot1.close()
-        robot2.close()
-        logging.info("All robots closed")
-\`\`\`
+#### configure_robot(ep_robot)
+Configures the robot's components.
 
-## Contributing
+#### track_line(ep_robot, mode)
+Tracks a line and executes tasks based on the mode.
 
-Contributions are welcome! Please fork the repository and submit a pull request with your changes.
+#### configure_marker_execute(ep_vision, ep_chassis, ep_camera, ep_gimbal, mode)
+Configures the robot for marker-based execution.
+
+#### configure_distance_execute(ep_vision, ep_chassis, ep_camera, ep_gimbal, ep_gripper, ep_sensor)
+Configures the robot for distance-based execution.
+
+#### process_lines_cargo(ep_chassis, img, pid, x_val, frame_width, line_list)
+Processes line data for cargo mode.
+
+#### process_lines_arm(ep_chassis, ep_gimbal, img, pid, x_val, frame_width, line_list)
+Processes line data for arm mode.
+
+#### stop_and_reposition(ep_chassis)
+Stops the robot and repositions it.
+
+#### execute_task(robot, task)
+Executes a specified task using the robot.
+
+#### catch_and_return(robot)
+Executes the catch and return operation.
+
+#### execute_task_back(robot, task)
+Executes the task to return the object.
+
+## Error Handling
+
+The program includes error handling to ensure that the robots stop and reposition in case of any errors during execution.
+
+## Conclusion
+
+This project demonstrates the use of computer vision and robotic control to perform complex tasks involving line tracking and object manipulation. The use of a PID controller ensures precise control of the robots' movements.
+
+For any issues or contributions, please feel free to open an issue or submit a pull request.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+This project is licensed under the MIT License. See the LICENSE file for details.
