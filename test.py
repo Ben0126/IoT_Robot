@@ -50,12 +50,6 @@ def on_detect_line(line_info):
     global line_list
     line_list = [PointInfo(x, y, ceta, c) for x, y, ceta, c in line_info[1:]]
 
-# def sub_data_distance(sub_info):
-#     global distance_data
-#     distance = sub_info
-#     distance_data = distance[0]
-#     print("tof1:{0}".format(distance_data))
-
 distance_data = None
 def sub_data_distance(sub_info):
     distance = sub_info
@@ -295,6 +289,6 @@ if __name__ == "__main__":
         # ep_vision.unsub_detect_info(name="line")
         # cv2.destroyAllWindows()
         # ep_camera.stop_video_stream()
-        robot1.close()
+        # robot1.close()
         robot2.close()
         print("All robots closed")
