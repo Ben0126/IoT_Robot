@@ -65,26 +65,51 @@ The program initializes two robots and executes a series of tasks involving line
 
 ```mermaid
 flowchart TD
-    A[Start] --> B[Initialize Robot1 and Robot2]
-    B --> C[Track Line: cargo-marker for Robot1]
-    C --> D[Check if markers found]
-    D -->|Yes| E[Execute Task for Robot2]
-    D -->|No| F[Stop and Reposition]
-    E --> G[Track Line: arm-distance for Robot2]
-    G --> H[Check distance data]
-    H -->|Data <= 50| I[Catch and Return for Robot2]
-    H -->|Data > 50| G
-    I --> J[Track Line: arm-marker for Robot2]
-    J --> K[Execute Task Back for Robot2]
-    K --> L[Track Line: cargo-marker for Robot1]
+    A[Start] --> B[Initialize Robot1 & Robot2]
+    B --> C[Line Tracking: cargo-marker for Robot1]
+    C --> D{Detected Task Marker?}
+    D -->|Yes| E[Accept Task Number and Move to Designated Area for Robot2]
+    D -->|No| C
+    E --> G[Line Tracking: arm-distance for Robot2]
+    G --> H{Target Distance < 50 cm?}
+    H -->|Yes| I[Pick Up Object for Robot2]
+    H -->|No| G
+    I --> J[Line Tracking: arm-marker for Robot2]
+    J --> K[Place Object on Robot1 for Robot2]
+    K --> L[Line Tracking: cargo-marker for Robot1]
     L --> M[End]
-    F --> M
-    subgraph TrackLineSubgraph
+
+    subgraph Task Execution
         direction LR
         E --> G
         G --> H
         H --> I
     end
+
+    style A fill:#f9f,stroke:#333,stroke-width:4px,color:#000
+    style B fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style C fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#ffb,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style G fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style H fill:#ffb,stroke:#333,stroke-width:2px,color:#000
+    style I fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style J fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style K fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style L fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style M fill:#f9f,stroke:#333,stroke-width:4px,color:#000
+
+    linkStyle 0 stroke:#0f0,stroke-width:2px
+    linkStyle 1 stroke:#f00,stroke-width:2px
+    linkStyle 2 stroke:#00f,stroke-width:2px
+    linkStyle 3 stroke:#00f,stroke-width:2px
+    linkStyle 4 stroke:#00f,stroke-width:2px
+    linkStyle 5 stroke:#0f0,stroke-width:2px
+    linkStyle 6 stroke:#0f0,stroke-width:2px
+    linkStyle 7 stroke:#f00,stroke-width:2px
+    linkStyle 8 stroke:#f00,stroke-width:2px
+
+
 ```
 
 ## Classes and Functions
