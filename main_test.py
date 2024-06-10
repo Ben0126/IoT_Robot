@@ -3,6 +3,7 @@ from robomaster import robot, vision
 import numpy as np
 import time
 
+# 定義一個類來儲存標記訊息
 class MarkerInfo:
     def __init__(self, x, y, w, h, info):
         self.x = x
@@ -11,18 +12,19 @@ class MarkerInfo:
         self.h = h
         self.info = info
 
-    @property
+    @property   # 計算左上角的座標點
     def pt1(self):
         return int((self.x - self.w / 2) * 1280), int((self.y - self.h / 2) * 720)
 
-    @property
+    @property   # 計算右下角的座標點
     def pt2(self):
         return int((self.x + self.w / 2) * 1280), int((self.y + self.h / 2) * 720)
 
-    @property
+    @property   # 計算中心點
     def center(self):
         return int(self.x * 1280), int(self.y * 720)
 
+# 定義一個類來儲存點的信息
 class PointInfo:
     def __init__(self, x, y, theta, c):
         self.x = x
