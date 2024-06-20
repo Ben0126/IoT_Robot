@@ -324,7 +324,7 @@ def get_box(robot):
     ep_sensor.sub_distance(freq=5, callback=robot1_sub_data_handler)
     while True:
         ep_chassis.drive_speed(x=-0.05, y=0, z=0)
-        if robot1_distance_data is not None and robot1_distance_data <= 50:
+        if robot1_distance_data is not None and robot1_distance_data <= 60:
             # ep_chassis.drive_speed(x=0, y=0, z=0)
             stop_and_reposition(ep_chassis)
             print("arrive robot2")
@@ -336,15 +336,15 @@ def get_box(robot):
 
 if __name__ == "__main__":
     try:
-        # robot1 = robot.Robot()
-        # robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
-        #
-        # track_line(robot1, "cargo-marker")
-        # print("track line")
-        # task = markers[0].info if markers else None
-        # robot1.close()
-        # print("task:", task)
-        # time.sleep(1)
+        robot1 = robot.Robot()
+        robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
+
+        track_line(robot1, "cargo-marker")
+        print("track line")
+        task = markers[0].info if markers else None
+        robot1.close()
+        print("task:", task)
+        time.sleep(1)
 
         robot2 = robot.Robot()
         robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
@@ -370,10 +370,10 @@ if __name__ == "__main__":
         print("arm_robot come back")
         robot2.close()
 
-        # robot1 = robot.Robot()
-        # robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
-        # get_box(robot1)
-        # robot1.close()
+        robot1 = robot.Robot()
+        robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
+        get_box(robot1)
+        robot1.close()
 
         robot2 = robot.Robot()
         robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
@@ -381,17 +381,17 @@ if __name__ == "__main__":
         execute_task_back(robot2, task)
         robot2.close()
 
-        # robot1 = robot.Robot()
-        # robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
-        # track_line(robot1, "cargo-marker")
+        robot1 = robot.Robot()
+        robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
+        track_line(robot1, "cargo-marker")
         print("The End")
 
     except KeyboardInterrupt:
-        # stop_and_reposition(robot1)
+        stop_and_reposition(robot1)
         stop_and_reposition(robot2)
         print("Emergency stop!")
 
     finally:
-        # robot1.close()
+        robot1.close()
         robot2.close()
         print("All robots closed")

@@ -122,8 +122,9 @@ def configure_marker_execute(ep_robot, ep_vision, ep_chassis, ep_camera, ep_gimb
                 stop_and_reposition(ep_chassis)
                 ep_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
                 time.sleep(1)
-                # ep_robot.close()
+
                 print("line 17")
+                ep_robot.close()
                 break
             ep_vision.sub_detect_info(name="line", color="blue", callback=on_detect_line)
 
@@ -238,47 +239,6 @@ def stop_and_reposition(ep_chassis):
     ep_chassis.drive_speed(x=0, y=0, z=0, timeout=0.5)
     time.sleep(1)
 
-# def execute_task(robot, task):
-#     ep_chassis, ep_servo, ep_gimbal, ep_gripper = robot.chassis, robot.servo, robot.gimbal, robot.gripper
-#
-#     if task == "1":
-#         ep_chassis.move(x=0, y=0, z=90, z_speed=45).wait_for_completed()
-#     elif task == "2":
-#         ep_chassis.move(x=0, y=0, z=0, xy_speed=0).wait_for_completed()
-#     elif task == "3":
-#         ep_chassis.move(x=0, y=0, z=-90, z_speed=45).wait_for_completed()
-#     else:
-#         stop_and_reposition(ep_chassis)
-#         print("No get task")
-#     time.sleep(0.5)
-#
-#     ep_servo.moveto(index=1, angle=-10).wait_for_completed()
-#     ep_servo.moveto(index=2, angle=-35).wait_for_completed()
-#     ep_gimbal.moveto(pitch=-50, yaw=0).wait_for_completed()
-#     ep_gripper.open(power=10)
-#     time.sleep(0.5)
-
-# def catch_and_return(robot):
-#     ep_chassis, ep_gripper, ep_servo, ep_gimbal = robot.chassis, robot.gripper, robot.servo, robot.gimbal
-#     # ep_gripper.open(power=10)
-#     # time.sleep(1)
-#     ep_chassis.move(x=0.03, y=0, z=0, xy_speed=0.1).wait_for_completed()
-#     print("catch")
-#     ep_gripper.close(power=10)
-#     print("line 227")
-#     time.sleep(2)
-#     ep_gripper.pause()
-#     print("line 230")
-#     time.sleep(1)
-#     print("Gripper closed")
-#     ep_servo.moveto(index=2, angle=-95).wait_for_completed()
-#     ep_servo.moveto(index=1, angle=80).wait_for_completed()
-#     print("Finish")
-#     time.sleep(2)
-#     ep_chassis.move(x=0, y=0, z=180, z_speed=45).wait_for_completed()
-#     ep_gimbal.moveto(pitch=-50, yaw=0, pitch_speed=100, yaw_speed=100).wait_for_completed()
-#     time.sleep(0.5)
-
 def execute_task_back(robot, task):
     ep_chassis, ep_gripper, ep_servo, ep_gimbal = robot.chassis, robot.gripper, robot.servo, robot.gimbal
 
@@ -324,52 +284,22 @@ def get_box(robot):
     ep_sensor.sub_distance(freq=5, callback=robot1_sub_data_handler)
     while True:
         ep_chassis.drive_speed(x=-0.05, y=0, z=0)
-        if robot1_distance_data is not None and robot1_distance_data <= 50:
+        if robot1_distance_data is not None and robot1_distance_data <= 80:
             # ep_chassis.drive_speed(x=0, y=0, z=0)
             stop_and_reposition(ep_chassis)
             print("arrive robot2")
+            # ep_chassis.move(x=0.2, y=0, z=0, xy_speed=1).wait_for_completed()
             time.sleep(1)
-            ep_chassis.move(x=0, y=-0.18, z=0, xy_speed=1).wait_for_completed()
+            ep_chassis.move(x=0, y=-0.2, z=0, xy_speed=1).wait_for_completed()
+            time.sleep(1)
+
             print("arrive")
             break
 
 
 if __name__ == "__main__":
     try:
-        # robot1 = robot.Robot()
-        # robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
-        #
-        # track_line(robot1, "cargo-marker")
-        # print("track line")
-        # task = markers[0].info if markers else None
-        # robot1.close()
-        # print("task:", task)
-        # time.sleep(1)
-
-        # robot2 = robot.Robot()
-        # robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
         task = 2
-        # execute_task(robot2, task)
-        # print("go to specify place")
-        # track_line(robot2, "arm-distance")
-        # print("arrived specify place")
-        # robot2.close()
-        # time.sleep(1)
-
-        # robot2 = robot.Robot()
-        # robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
-        # time.sleep(1)
-        # print("re-connect")
-        # catch_and_return(robot2)
-        # robot2.close()
-
-        # robot2 = robot.Robot()
-        # robot2.initialize(conn_type="sta", sn="3JKDH5D0017578")
-        # print("catch_and_return")
-        # track_line(robot2, "arm-marker")
-        # print("arm_robot come back")
-        # robot2.close()
-
         robot1 = robot.Robot()
         robot1.initialize(conn_type="sta", sn="3JKDH6C001462K")
         get_box(robot1)
